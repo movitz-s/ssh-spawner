@@ -8,21 +8,17 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// SSHServer listens to SSH reqs and delegates to DockerService
 type SSHServer struct {
 	config *ssh.ServerConfig
-	ds     *DockerService
+	ds     DockerService
 	host   string
 	port   int
 }
 
 // NewSSHServer constructs a new SSHServer
-func NewSSHServer(config *ssh.ServerConfig, host string, port int) *SSHServer {
-	return &SSHServer{
-		config,
-		NewDockerService(),
-		host,
-		port,
-	}
+func NewSSHServer(config *ssh.ServerConfig, ds DockerService, host string, port int) *SSHServer {
+	return &SSHServer{config, ds, host, port}
 }
 
 // Start initializes a tcp connection and delegate requests
@@ -45,7 +41,7 @@ func (server *SSHServer) Start() {
 func (server *SSHServer) bootstrap(conn net.Conn) {
 	_, newChannels, _, err := ssh.NewServerConn(conn, server.config)
 	if err != nil {
-		fmt.Println("Failed to handshake with new client: %v", err)
+		fmt.Printf("Handshake failed with client: %v\n", err)
 		return
 	}
 
@@ -54,10 +50,11 @@ func (server *SSHServer) bootstrap(conn net.Conn) {
 			newChannel.Reject(ssh.UnknownChannelType, "unknown channel type")
 			continue
 		}
+
 		channel, requests, err := newChannel.Accept()
 		if err != nil {
 			fmt.Printf("Could not accept channel: %v\n", err)
-			return
+			continue
 		}
 
 		go func(in <-chan *ssh.Request) {

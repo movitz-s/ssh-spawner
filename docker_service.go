@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -11,26 +9,24 @@ import (
 	docker "github.com/docker/docker/client"
 )
 
-// DockerService manages everything docker related
-type DockerService struct {
+// DockerService describes a service that serves shells from docker
+type DockerService interface {
+	HijackShell() (types.HijackedResponse, error)
+}
+
+// SimpleDockerService only creates containers, nothing fancy
+type SimpleDockerService struct {
 	targetImageID string
 	dockerClient  *docker.Client
 }
 
-// NewDockerService constructs a new DockerService
-func NewDockerService() *DockerService {
-	client, err := docker.NewClient("tcp://127.0.0.1:2375", "", &http.Client{Transport: http.DefaultTransport}, map[string]string{})
-	if err != nil {
-		fmt.Println(err)
-	}
-	return &DockerService{
-		"debian",
-		client,
-	}
+// NewSimpleDockerService constructs a new DockerService
+func NewSimpleDockerService(client *docker.Client) DockerService {
+	return SimpleDockerService{"debian", client}
 }
 
 // HijackShell starts a container and retreives a hijacked shell from the container
-func (dm DockerService) HijackShell() (hijack types.HijackedResponse, err error) {
+func (dm SimpleDockerService) HijackShell() (hijack types.HijackedResponse, err error) {
 
 	resp, err := dm.dockerClient.ContainerCreate(
 		context.Background(),
