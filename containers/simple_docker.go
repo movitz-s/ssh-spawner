@@ -21,7 +21,7 @@ func NewSimpleDockerService(client *docker.Client) ContainerService {
 }
 
 // GetShell starts a container and retreives a shell from the container
-func (dm SimpleDockerService) GetShell() (*Shell, error) {
+func (dm SimpleDockerService) GetShell() (Shell, error) {
 
 	resp, err := dm.dockerClient.ContainerCreate(
 		context.Background(),
@@ -59,7 +59,6 @@ func (dm SimpleDockerService) GetShell() (*Shell, error) {
 	}
 
 	err = dm.dockerClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
-	var shell Shell = hijack.Conn
-	return &shell, err
+	return hijack.Conn, err
 
 }

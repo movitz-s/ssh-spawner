@@ -12,5 +12,5 @@ type Shell interface {
 
 // ContainerService describes a service that serves shells
 type ContainerService interface {
-	GetShell() (shell *Shell, err error)
+	GetShell() (shell Shell, err error)
 }
