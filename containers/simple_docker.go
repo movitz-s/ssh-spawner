@@ -1,4 +1,4 @@
-package main
+package containers
 
 import (
 	"context"
@@ -9,24 +9,19 @@ import (
 	docker "github.com/docker/docker/client"
 )
 
-// DockerService describes a service that serves shells from docker
-type DockerService interface {
-	HijackShell() (types.HijackedResponse, error)
-}
-
 // SimpleDockerService only creates containers, nothing fancy
 type SimpleDockerService struct {
 	targetImageID string
 	dockerClient  *docker.Client
 }
 
-// NewSimpleDockerService constructs a new DockerService
-func NewSimpleDockerService(client *docker.Client) DockerService {
+// NewSimpleDockerService constructs a new ContainerService with a docker backend
+func NewSimpleDockerService(client *docker.Client) ContainerService {
 	return SimpleDockerService{"debian", client}
 }
 
-// HijackShell starts a container and retreives a hijacked shell from the container
-func (dm SimpleDockerService) HijackShell() (hijack types.HijackedResponse, err error) {
+// GetShell starts a container and retreives a shell from the container
+func (dm SimpleDockerService) GetShell() (*Shell, error) {
 
 	resp, err := dm.dockerClient.ContainerCreate(
 		context.Background(),
@@ -49,10 +44,10 @@ func (dm SimpleDockerService) HijackShell() (hijack types.HijackedResponse, err 
 	)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	hijack, err = dm.dockerClient.ContainerAttach(context.Background(), resp.ID, types.ContainerAttachOptions{
+	hijack, err := dm.dockerClient.ContainerAttach(context.Background(), resp.ID, types.ContainerAttachOptions{
 		Stderr: true,
 		Stdin:  true,
 		Stdout: true,
@@ -60,9 +55,11 @@ func (dm SimpleDockerService) HijackShell() (hijack types.HijackedResponse, err 
 	})
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	err = dm.dockerClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
-	return
+	var shell Shell = hijack.Conn
+	return &shell, err
+
 }

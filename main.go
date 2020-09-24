@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/movitz-s/docker-ssh-load-balancer/containers"
+	"github.com/movitz-s/docker-ssh-load-balancer/remote"
+
 	docker "github.com/docker/docker/client"
 	"golang.org/x/crypto/ssh"
 )
@@ -29,22 +32,22 @@ func main() {
 		panic(err)
 	}
 
-	ds := NewSimpleDockerService(client)
+	ds := containers.NewSimpleDockerService(client)
 
-	server := NewSSHServer(config, ds, "localhost", 22)
+	server := remote.NewServer(config, ds, "localhost", 22)
 	server.Start()
 
 }
 
-func loadPrivateKey() (private ssh.Signer) {
+func loadPrivateKey() ssh.Signer {
 	privateBytes, err := ioutil.ReadFile("id_rsa")
 	if err != nil {
 		panic(fmt.Sprintf("Error while loading private key: %v\n", err))
 	}
 
-	private, err = ssh.ParsePrivateKey(privateBytes)
+	private, err := ssh.ParsePrivateKey(privateBytes)
 	if err != nil {
 		panic(fmt.Sprintf("Error while parsing private key: %v\n", err))
 	}
-	return
+	return private
 }

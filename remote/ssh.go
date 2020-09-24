@@ -1,28 +1,29 @@
-package main
+package remote
 
 import (
 	"fmt"
 	"io"
 	"net"
 
+	"github.com/movitz-s/docker-ssh-load-balancer/containers"
 	"golang.org/x/crypto/ssh"
 )
 
-// SSHServer listens to SSH reqs and delegates to DockerService
-type SSHServer struct {
+// Server listens to SSH reqs and delegates to ContainerService
+type Server struct {
 	config *ssh.ServerConfig
-	ds     DockerService
+	ds     containers.ContainerService
 	host   string
 	port   int
 }
 
-// NewSSHServer constructs a new SSHServer
-func NewSSHServer(config *ssh.ServerConfig, ds DockerService, host string, port int) *SSHServer {
-	return &SSHServer{config, ds, host, port}
+// NewServer constructs a new Server
+func NewServer(config *ssh.ServerConfig, ds containers.ContainerService, host string, port int) *Server {
+	return &Server{config, ds, host, port}
 }
 
 // Start initializes a tcp connection and delegate requests
-func (server *SSHServer) Start() {
+func (server *Server) Start() {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", server.host, server.port))
 	if err != nil {
 		panic(fmt.Sprintf("Could not listen: %v", err))
@@ -38,7 +39,7 @@ func (server *SSHServer) Start() {
 	}
 }
 
-func (server *SSHServer) bootstrap(conn net.Conn) {
+func (server *Server) bootstrap(conn net.Conn) {
 	_, newChannels, _, err := ssh.NewServerConn(conn, server.config)
 	if err != nil {
 		fmt.Printf("Handshake failed with client: %v\n", err)
@@ -74,13 +75,13 @@ func (server *SSHServer) bootstrap(conn net.Conn) {
 
 }
 
-func (server *SSHServer) handle(channel ssh.Channel) {
+func (server *Server) handle(channel ssh.Channel) {
 
 	defer func() {
 		channel.Close()
 	}()
 
-	hijack, err := server.ds.HijackShell()
+	shell, err := server.ds.GetShell()
 
 	if err != nil {
 		fmt.Printf("Could not get a hijack connection: %+v\n", err)
@@ -88,12 +89,13 @@ func (server *SSHServer) handle(channel ssh.Channel) {
 	}
 
 	go func() {
-		_, err := io.Copy(hijack.Conn, channel)
+		_, err := io.Copy(*shell, channel)
 		if err != nil {
 			fmt.Printf("Error while copying from hijack to client: %v\n", err)
 		}
 	}()
-	_, err = io.Copy(channel, hijack.Conn)
+
+	_, err = io.Copy(channel, *shell)
 	if err != nil {
 		fmt.Printf("Error while copying from client to hijack: %v\n", err)
 	}
