@@ -12,13 +12,10 @@ import (
 )
 
 // GitCommit is assigned at build time
-var GitCommit string
+var GitCommit = "<unknown>"
 
 func main() {
-	if GitCommit == "" {
-		GitCommit = "<unknown>"
-	}
-	fmt.Printf("SSH Loadbalancer\nGit commit %s\n", GitCommit)
+	fmt.Printf("SSH Spawner\nGit commit %s\n", GitCommit)
 
 	config := &ssh.ServerConfig{
 		NoClientAuth: true,
