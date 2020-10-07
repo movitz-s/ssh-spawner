@@ -3,12 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/movitz-s/ssh-spawner/remote"
-	"github.com/movitz-s/ssh-spawner/shells"
 
-	docker "github.com/docker/docker/client"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -27,14 +24,9 @@ func main() {
 
 	config.AddHostKey(loadPrivateKey())
 
-	client, err := docker.NewClient("tcp://127.0.0.1:2375", "", &http.Client{Transport: http.DefaultTransport}, map[string]string{})
-	if err != nil {
-		panic(err)
-	}
+	ss := InitializeShellService()
 
-	ds := shells.NewDockerShellService(client)
-
-	server := remote.NewServer(config, ds, "localhost", 22)
+	server := remote.NewServer(config, ss, "localhost", 22)
 	server.Start()
 
 }

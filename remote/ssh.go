@@ -5,20 +5,20 @@ import (
 	"io"
 	"net"
 
-	"github.com/movitz-s/ssh-spawner/containers"
+	"github.com/movitz-s/ssh-spawner/shells"
 	"golang.org/x/crypto/ssh"
 )
 
 // Server listens to SSH reqs and delegates to ShellService
 type Server struct {
 	config *ssh.ServerConfig
-	ds     containers.ShellService
+	ds     shells.ShellService
 	host   string
 	port   int
 }
 
 // NewServer constructs a new Server
-func NewServer(config *ssh.ServerConfig, ds containers.ShellService, host string, port int) *Server {
+func NewServer(config *ssh.ServerConfig, ds shells.ShellService, host string, port int) *Server {
 	return &Server{config, ds, host, port}
 }
 
