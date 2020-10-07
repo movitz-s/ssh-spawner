@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
+	docker "github.com/docker/docker/client"
 	"github.com/movitz-s/ssh-spawner/remote"
 
 	"golang.org/x/crypto/ssh"
@@ -42,4 +44,12 @@ func loadPrivateKey() ssh.Signer {
 		panic(fmt.Sprintf("Error while parsing private key: %v\n", err))
 	}
 	return private
+}
+
+func NewDockerClient() *docker.Client {
+	client, err := docker.NewClient("tcp://127.0.0.1:2375", "", &http.Client{Transport: http.DefaultTransport}, map[string]string{})
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
