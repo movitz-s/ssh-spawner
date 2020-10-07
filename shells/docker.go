@@ -24,7 +24,7 @@ func NewDockerShellService(client *docker.Client) ShellService {
 func (dm DockerShellService) GetShell() (Shell, error) {
 
 	resp, err := dm.dockerClient.ContainerCreate(
-		context.Background(),
+		context.TODO(),
 		&container.Config{
 			Image:           dm.targetImageID,
 			NetworkDisabled: true,
@@ -47,7 +47,7 @@ func (dm DockerShellService) GetShell() (Shell, error) {
 		return nil, err
 	}
 
-	hijack, err := dm.dockerClient.ContainerAttach(context.Background(), resp.ID, types.ContainerAttachOptions{
+	hijack, err := dm.dockerClient.ContainerAttach(context.TODO(), resp.ID, types.ContainerAttachOptions{
 		Stderr: true,
 		Stdin:  true,
 		Stdout: true,
@@ -58,7 +58,7 @@ func (dm DockerShellService) GetShell() (Shell, error) {
 		return nil, err
 	}
 
-	err = dm.dockerClient.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	err = dm.dockerClient.ContainerStart(context.TODO(), resp.ID, types.ContainerStartOptions{})
 	return hijack.Conn, err
 
 }

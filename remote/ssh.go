@@ -12,14 +12,14 @@ import (
 // Server listens to SSH reqs and delegates to ShellService
 type Server struct {
 	config *ssh.ServerConfig
-	ds     shells.ShellService
+	ss     shells.ShellService
 	host   string
 	port   int
 }
 
 // NewServer constructs a new Server
-func NewServer(config *ssh.ServerConfig, ds shells.ShellService, host string, port int) *Server {
-	return &Server{config, ds, host, port}
+func NewServer(config *ssh.ServerConfig, ss shells.ShellService, host string, port int) *Server {
+	return &Server{config, ss, host, port}
 }
 
 // Start initializes a tcp connection and delegate requests
@@ -32,7 +32,8 @@ func (server *Server) Start() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			panic(fmt.Sprintf("Failed to accept incoming connection: %v\n", err))
+			fmt.Printf("Failed to accept incoming connection: %v\n", err)
+			continue
 		}
 
 		go server.bootstrap(conn)
@@ -81,7 +82,7 @@ func (server *Server) handle(channel ssh.Channel) {
 		channel.Close()
 	}()
 
-	shell, err := server.ds.GetShell()
+	shell, err := server.ss.GetShell()
 
 	if err != nil {
 		fmt.Printf("Could not get a shell: %+v\n", err)
