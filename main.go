@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/movitz-s/docker-ssh-load-balancer/containers"
-	"github.com/movitz-s/docker-ssh-load-balancer/remote"
+	"github.com/movitz-s/ssh-spawner/remote"
+	"github.com/movitz-s/ssh-spawner/shells"
 
 	docker "github.com/docker/docker/client"
 	"golang.org/x/crypto/ssh"
@@ -32,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	ds := containers.NewSimpleDockerService(client)
+	ds := shells.NewDockerShellService(client)
 
 	server := remote.NewServer(config, ds, "localhost", 22)
 	server.Start()

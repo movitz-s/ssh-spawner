@@ -1,4 +1,4 @@
-package containers
+package shells
 
 import (
 	"context"
@@ -9,19 +9,19 @@ import (
 	docker "github.com/docker/docker/client"
 )
 
-// SimpleDockerService only creates containers, nothing fancy
-type SimpleDockerService struct {
+// DockerShellService only creates containers, nothing fancy
+type DockerShellService struct {
 	targetImageID string
 	dockerClient  *docker.Client
 }
 
-// NewSimpleDockerService constructs a new ContainerService with a docker backend
-func NewSimpleDockerService(client *docker.Client) ContainerService {
-	return SimpleDockerService{"debian", client}
+// NewDockerShellService constructs a new ShellService with a docker backend
+func NewDockerShellService(client *docker.Client) ShellService {
+	return DockerShellService{"debian", client}
 }
 
 // GetShell starts a container and retreives a shell from the container
-func (dm SimpleDockerService) GetShell() (Shell, error) {
+func (dm DockerShellService) GetShell() (Shell, error) {
 
 	resp, err := dm.dockerClient.ContainerCreate(
 		context.Background(),

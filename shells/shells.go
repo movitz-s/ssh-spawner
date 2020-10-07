@@ -1,4 +1,4 @@
-package containers
+package shells
 
 import (
 	"io"
@@ -10,7 +10,7 @@ type Shell interface {
 	io.Closer
 }
 
-// ContainerService describes a service that serves shells
-type ContainerService interface {
+// ShellService describes a service that serves shells
+type ShellService interface {
 	GetShell() (shell Shell, err error)
 }

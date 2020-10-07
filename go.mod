@@ -1,4 +1,4 @@
-module github.com/movitz-s/docker-ssh-load-balancer
+module github.com/movitz-s/ssh-spawner
 
 go 1.14
 

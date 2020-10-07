@@ -5,20 +5,20 @@ import (
 	"io"
 	"net"
 
-	"github.com/movitz-s/docker-ssh-load-balancer/containers"
+	"github.com/movitz-s/ssh-spawner/containers"
 	"golang.org/x/crypto/ssh"
 )
 
-// Server listens to SSH reqs and delegates to ContainerService
+// Server listens to SSH reqs and delegates to ShellService
 type Server struct {
 	config *ssh.ServerConfig
-	ds     containers.ContainerService
+	ds     containers.ShellService
 	host   string
 	port   int
 }
 
 // NewServer constructs a new Server
-func NewServer(config *ssh.ServerConfig, ds containers.ContainerService, host string, port int) *Server {
+func NewServer(config *ssh.ServerConfig, ds containers.ShellService, host string, port int) *Server {
 	return &Server{config, ds, host, port}
 }
 
@@ -84,19 +84,19 @@ func (server *Server) handle(channel ssh.Channel) {
 	shell, err := server.ds.GetShell()
 
 	if err != nil {
-		fmt.Printf("Could not get a hijack connection: %+v\n", err)
+		fmt.Printf("Could not get a shell: %+v\n", err)
 		return
 	}
 
 	go func() {
 		_, err := io.Copy(shell, channel)
 		if err != nil {
-			fmt.Printf("Error while copying from hijack to client: %v\n", err)
+			fmt.Printf("Error while copying from shell to client: %v\n", err)
 		}
 	}()
 
 	_, err = io.Copy(channel, shell)
 	if err != nil {
-		fmt.Printf("Error while copying from client to hijack: %v\n", err)
+		fmt.Printf("Error while copying from client to shell: %v\n", err)
 	}
 }
