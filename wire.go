@@ -7,6 +7,6 @@ import (
 	"github.com/movitz-s/ssh-spawner/shells"
 )
 
-func InitializeShellService() shells.ShellService {
-	panic(wire.Build(NewDockerClient, shells.NewDockerShellService))
+func initializeShellService() (shells.ShellService, error) {
+	panic(wire.Build(newDockerClient, shells.NewDockerShellService))
 }

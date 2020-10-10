@@ -10,7 +10,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/google/wire v0.4.0
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect
 )

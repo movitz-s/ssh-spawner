@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/movitz-s/ssh-spawner/shells"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -23,17 +24,17 @@ func NewServer(config *ssh.ServerConfig, ss shells.ShellService, host string, po
 }
 
 // Start initializes a tcp connection and delegate requests
-func (server *Server) Start() {
+func (server *Server) Start() error {
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", server.host, server.port))
+
 	if err != nil {
-		panic(fmt.Sprintf("Could not listen: %v", err))
+		return errors.Wrap(err, "Could not start SSH server")
 	}
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Printf("Failed to accept incoming connection: %v\n", err)
-			continue
+			return errors.Wrap(err, "Could not listen on SSH server")
 		}
 
 		go server.bootstrap(conn)

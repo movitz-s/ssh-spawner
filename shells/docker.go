@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	docker "github.com/docker/docker/client"
+	"github.com/pkg/errors"
 )
 
 // DockerShellService only creates containers, nothing fancy
@@ -44,7 +45,7 @@ func (dm DockerShellService) GetShell() (Shell, error) {
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Could not create container")
 	}
 
 	hijack, err := dm.dockerClient.ContainerAttach(context.TODO(), resp.ID, types.ContainerAttachOptions{
@@ -55,10 +56,10 @@ func (dm DockerShellService) GetShell() (Shell, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Could not attach container")
 	}
 
 	err = dm.dockerClient.ContainerStart(context.TODO(), resp.ID, types.ContainerStartOptions{})
-	return hijack.Conn, err
+	return hijack.Conn, errors.Wrap(err, "Could not start container")
 
 }

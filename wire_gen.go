@@ -11,8 +11,11 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeShellService() shells.ShellService {
-	client := NewDockerClient()
+func initializeShellService() (shells.ShellService, error) {
+	client, err := newDockerClient()
+	if err != nil {
+		return nil, err
+	}
 	shellService := shells.NewDockerShellService(client)
-	return shellService
+	return shellService, nil
 }

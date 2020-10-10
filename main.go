@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	docker "github.com/docker/docker/client"
 	"github.com/movitz-s/ssh-spawner/remote"
+	"github.com/pkg/errors"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -15,38 +17,46 @@ import (
 var GitCommit = "<unknown>"
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	fmt.Printf("SSH Spawner\nGit commit %s\n", GitCommit)
 
 	config := &ssh.ServerConfig{
 		NoClientAuth: true,
 	}
 
-	config.AddHostKey(loadPrivateKey())
+	key, err := loadPrivateKey()
+	if err != nil {
+		return err
+	}
+	config.AddHostKey(key)
 
-	ss := InitializeShellService()
+	ss, err := initializeShellService()
+	if err != nil {
+		return err
+	}
 
 	server := remote.NewServer(config, ss, "localhost", 22)
-	server.Start()
-
+	err = server.Start()
+	return err
 }
 
-func loadPrivateKey() ssh.Signer {
+func loadPrivateKey() (ssh.Signer, error) {
 	privateBytes, err := ioutil.ReadFile("id_rsa")
 	if err != nil {
-		panic(fmt.Sprintf("Error while loading private key: %v\n", err))
+		return nil, errors.Wrap(err, "Could not load SSH private key file")
 	}
 
 	private, err := ssh.ParsePrivateKey(privateBytes)
-	if err != nil {
-		panic(fmt.Sprintf("Error while parsing private key: %v\n", err))
-	}
-	return private
+	return private, errors.Wrap(err, "Could not parse SSH private key")
 }
 
-func NewDockerClient() *docker.Client {
+func newDockerClient() (*docker.Client, error) {
 	client, err := docker.NewClient("tcp://127.0.0.1:2375", "", &http.Client{Transport: http.DefaultTransport}, map[string]string{})
-	if err != nil {
-		panic(err)
-	}
-	return client
+	return client, errors.Wrap(err, "Could not create docker client")
 }
