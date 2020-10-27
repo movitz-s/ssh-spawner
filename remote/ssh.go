@@ -2,7 +2,6 @@ package remote
 
 import (
 	"fmt"
-	"io"
 	"net"
 
 	"github.com/movitz-s/ssh-spawner/shells"
@@ -62,12 +61,8 @@ func (server *Server) bootstrap(conn net.Conn) {
 
 		go func(in <-chan *ssh.Request) {
 			for req := range in {
-				switch req.Type {
-				case "shell", "pty-req":
-					req.Reply(true, nil)
-				default:
-					req.Reply(false, nil)
-				}
+				ok := req.Type == "shell" || req.Type == "pty-req"
+				req.Reply(ok, nil)
 			}
 		}(requests)
 
@@ -75,30 +70,4 @@ func (server *Server) bootstrap(conn net.Conn) {
 
 	}
 
-}
-
-func (server *Server) handle(channel ssh.Channel) {
-
-	defer func() {
-		channel.Close()
-	}()
-
-	shell, err := server.ss.GetShell()
-
-	if err != nil {
-		fmt.Printf("Could not get a shell: %+v\n", err)
-		return
-	}
-
-	go func() {
-		_, err := io.Copy(shell, channel)
-		if err != nil {
-			fmt.Printf("Error while copying from shell to client: %v\n", err)
-		}
-	}()
-
-	_, err = io.Copy(channel, shell)
-	if err != nil {
-		fmt.Printf("Error while copying from client to shell: %v\n", err)
-	}
 }
