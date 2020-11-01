@@ -6,6 +6,7 @@
 package main
 
 import (
+	"github.com/movitz-s/ssh-spawner/remote"
 	"github.com/movitz-s/ssh-spawner/shells"
 )
 
@@ -18,4 +19,19 @@ func initializeShellService() (shells.ShellService, error) {
 	}
 	shellService := shells.NewDockerShellService(client)
 	return shellService, nil
+}
+
+func initializeSSHServer() (*remote.Server, error) {
+	signer, err := loadPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+	serverConfig := newSSHConfig(signer)
+	shellService, err := initializeShellService()
+	if err != nil {
+		return nil, err
+	}
+	config := newConfig()
+	server := remote.NewServer(serverConfig, shellService, config)
+	return server, nil
 }

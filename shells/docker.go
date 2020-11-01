@@ -12,22 +12,21 @@ import (
 
 // DockerShellService only creates containers, nothing fancy
 type DockerShellService struct {
-	targetImageID string
-	dockerClient  *docker.Client
+	dockerClient *docker.Client
 }
 
 // NewDockerShellService constructs a new ShellService with a docker backend
 func NewDockerShellService(client *docker.Client) ShellService {
-	return DockerShellService{"debian", client}
+	return DockerShellService{client}
 }
 
 // GetShell starts a container and retreives a shell from the container
-func (dm DockerShellService) GetShell() (Shell, error) {
+func (dm DockerShellService) GetShell(imageID ImageID) (Shell, error) {
 
 	resp, err := dm.dockerClient.ContainerCreate(
 		context.TODO(),
 		&container.Config{
-			Image:           dm.targetImageID,
+			Image:           string(imageID),
 			NetworkDisabled: true,
 			Cmd:             []string{"bash"},
 			OpenStdin:       true,

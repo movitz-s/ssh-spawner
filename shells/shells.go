@@ -10,7 +10,9 @@ type Shell interface {
 	io.Closer
 }
 
+type ImageID string
+
 // ShellService describes a service that serves shells
 type ShellService interface {
-	GetShell() (shell Shell, err error)
+	GetShell(imageID ImageID) (shell Shell, err error)
 }

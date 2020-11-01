@@ -7,7 +7,8 @@ import (
 	"os"
 
 	docker "github.com/docker/docker/client"
-	"github.com/movitz-s/ssh-spawner/remote"
+	"github.com/movitz-s/ssh-spawner/config"
+	"github.com/movitz-s/ssh-spawner/shells"
 	"github.com/pkg/errors"
 
 	"golang.org/x/crypto/ssh"
@@ -26,22 +27,11 @@ func main() {
 func run() error {
 	fmt.Printf("SSH Spawner\nGit commit %s\n", GitCommit)
 
-	config := &ssh.ServerConfig{
-		NoClientAuth: true,
-	}
-
-	key, err := loadPrivateKey()
-	if err != nil {
-		return err
-	}
-	config.AddHostKey(key)
-
-	ss, err := initializeShellService()
+	server, err := initializeSSHServer()
 	if err != nil {
 		return err
 	}
 
-	server := remote.NewServer(config, ss, "localhost", 22)
 	err = server.Start()
 	return err
 }
@@ -56,7 +46,34 @@ func loadPrivateKey() (ssh.Signer, error) {
 	return private, errors.Wrap(err, "Could not parse SSH private key")
 }
 
+func newSSHConfig(key ssh.Signer) *ssh.ServerConfig {
+	config := ssh.ServerConfig{
+		NoClientAuth: true,
+	}
+	config.AddHostKey(key)
+	return &config
+}
+
 func newDockerClient() (*docker.Client, error) {
 	client, err := docker.NewClient("tcp://127.0.0.1:2375", "", &http.Client{Transport: http.DefaultTransport}, map[string]string{})
 	return client, errors.Wrap(err, "Could not create docker client")
+}
+
+func newConfig() *config.Config {
+	return &config.Config{
+		Images: []config.Image{
+			{
+				DisplayName: "🧠 Debian 🧠",
+				ImageID:     shells.ImageID("debian"),
+			},
+			{
+				DisplayName: "👩🏽‍💻 hackerbox 👩🏽‍💻",
+				ImageID:     shells.ImageID("debian"),
+			},
+		},
+		SSH: config.SSHConfig{
+			Port: 22,
+			Host: "localhost",
+		},
+	}
 }
