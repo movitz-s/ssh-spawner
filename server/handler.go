@@ -1,4 +1,4 @@
-package remote
+package server
 
 import (
 	"fmt"
@@ -81,7 +81,7 @@ func (server *Server) pickImageID(channel ssh.Channel) (shells.ImageID, error) {
 		return shells.ImageID(""), errors.Wrap(err, "Cloud not pick image id")
 	}
 
-	if index >= 0 || index < len(images) {
+	if index < 0 || index >= len(images) {
 		return shells.ImageID(""), errors.New("Received invalid index from promt")
 	}
 

@@ -6,7 +6,7 @@
 package main
 
 import (
-	"github.com/movitz-s/ssh-spawner/remote"
+	"github.com/movitz-s/ssh-spawner/server"
 	"github.com/movitz-s/ssh-spawner/shells"
 )
 
@@ -21,7 +21,7 @@ func initializeShellService() (shells.ShellService, error) {
 	return shellService, nil
 }
 
-func initializeSSHServer() (*remote.Server, error) {
+func initializeSSHServer() (*server.Server, error) {
 	signer, err := loadPrivateKey()
 	if err != nil {
 		return nil, err
@@ -32,6 +32,6 @@ func initializeSSHServer() (*remote.Server, error) {
 		return nil, err
 	}
 	config := newConfig()
-	server := remote.NewServer(serverConfig, shellService, config)
-	return server, nil
+	serverServer := server.NewServer(serverConfig, shellService, config)
+	return serverServer, nil
 }

@@ -25,7 +25,7 @@ func main() {
 }
 
 func run() error {
-	fmt.Printf("SSH Spawner\nGit commit %s\n", GitCommit)
+	banner()
 
 	server, err := initializeSSHServer()
 	if err != nil {
@@ -34,6 +34,12 @@ func run() error {
 
 	err = server.Start()
 	return err
+}
+
+func banner() {
+	fmt.Printf(`SSH Spawner
+Git commit %s
+`, GitCommit)
 }
 
 func loadPrivateKey() (ssh.Signer, error) {
@@ -47,9 +53,19 @@ func loadPrivateKey() (ssh.Signer, error) {
 }
 
 func newSSHConfig(key ssh.Signer) *ssh.ServerConfig {
-	config := ssh.ServerConfig{
-		NoClientAuth: true,
+	challCallback := func(conn ssh.ConnMetadata, client ssh.KeyboardInteractiveChallenge) (*ssh.Permissions, error) {
+		answers, err := client(conn.User(), "hej du", []string{"hehe ( :"}, []bool{true})
+		if err != nil {
+			return nil, err
+		}
+		if answers[0] != "nja" {
+			return nil, errors.New("nope")
+		}
+		return nil, nil
 	}
+
+	var config ssh.ServerConfig
+	config.KeyboardInteractiveCallback = challCallback
 	config.AddHostKey(key)
 	return &config
 }
@@ -63,11 +79,11 @@ func newConfig() *config.Config {
 	return &config.Config{
 		Images: []config.Image{
 			{
-				DisplayName: "🧠 Debian 🧠",
+				DisplayName: "Debian",
 				ImageID:     shells.ImageID("debian"),
 			},
 			{
-				DisplayName: "👩🏽‍💻 hackerbox 👩🏽‍💻",
+				DisplayName: "Hackerbox",
 				ImageID:     shells.ImageID("debian"),
 			},
 		},

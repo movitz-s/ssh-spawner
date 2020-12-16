@@ -1,8 +1,9 @@
-package remote
+package server
 
 import (
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/movitz-s/ssh-spawner/config"
 	"github.com/movitz-s/ssh-spawner/shells"
@@ -10,22 +11,35 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type Session struct {
+	sshChannel ssh.Channel
+	shell      shells.Shell
+}
+
 // Server listens to SSH reqs and delegates to ShellService
 type Server struct {
 	serverConfig *ssh.ServerConfig
 	ss           shells.ShellService
 	config       *config.Config
+	ips          map[string]bool
+	ipsLock      sync.Mutex
 }
 
 // NewServer constructs a new Server
 func NewServer(serverConfig *ssh.ServerConfig, ss shells.ShellService, config *config.Config) *Server {
-	return &Server{serverConfig, ss, config}
+	return &Server{
+		serverConfig: serverConfig,
+		ss:           ss,
+		config:       config,
+		ips:          make(map[string]bool),
+		// sync.Mutex{},
+	}
 }
 
 // Start initializes a tcp connection and delegate requests
 func (server *Server) Start() error {
 	addr := fmt.Sprintf("%s:%d", server.config.SSH.Host, server.config.SSH.Port)
-	fmt.Println("Listening on ", addr)
+	fmt.Println("Listening on", addr)
 	listener, err := net.Listen("tcp", addr)
 
 	if err != nil {
@@ -38,7 +52,9 @@ func (server *Server) Start() error {
 			return errors.Wrap(err, "Could not listen on SSH server")
 		}
 
-		go server.bootstrap(conn)
+		go func() {
+			server.bootstrap(conn)
+		}()
 	}
 }
 
@@ -68,8 +84,32 @@ func (server *Server) bootstrap(conn net.Conn) {
 			}
 		}(requests)
 
-		server.handle(channel)
+		// IP Check
+		ip := conn.RemoteAddr().(*net.TCPAddr).IP.String()
+		if !server.ipCheck(ip) {
+			channel.Write([]byte("Your IP has already made a connection to this server\n"))
+			channel.Close()
+			continue
+		}
+		defer server.ipCheckClear(ip)
 
+		server.handle(channel)
 	}
 
+}
+
+func (server *Server) ipCheck(ip string) bool {
+	server.ipsLock.Lock()
+	defer server.ipsLock.Unlock()
+	if server.ips[ip] {
+		return false
+	}
+	server.ips[ip] = true
+	return true
+}
+
+func (server *Server) ipCheckClear(ip string) {
+	server.ipsLock.Lock()
+	delete(server.ips, ip)
+	server.ipsLock.Unlock()
 }
