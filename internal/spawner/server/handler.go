@@ -26,9 +26,9 @@ func (server *Server) handle(channel ssh.Channel) {
 	shell, err := server.ss.GetShell(imageID)
 
 	if err != nil {
-		fmt.Printf("Could not get a shell")
-		fmt.Print(err)
-		channel.Write([]byte("Could not allocate a shell for you. Try again later.\n\r"))
+		fmt.Println("Could not get a shell")
+		fmt.Println(err)
+		channel.Write([]byte("Could not allocate a shell. Try again later.\n\r"))
 		return
 	}
 
@@ -56,10 +56,6 @@ func (server *Server) pickImageID(channel ssh.Channel) (shells.ImageID, error) {
 
 	if len(images) == 0 {
 		return shells.ImageID(""), errors.New("Server misconfigured, no images present")
-	}
-
-	if len(images) == 1 {
-		return images[0].ImageID, nil
 	}
 
 	var displayNames []string

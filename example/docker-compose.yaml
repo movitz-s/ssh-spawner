@@ -1,12 +1,8 @@
 version: '3.8'
 
-# for windows
-
 services:
   ssh:
-    build:
-      dockerfile: Dockerfile
-      context: ./
+    image: ssh-spawner:latest
     volumes:
       - ./id_rsa:/id_rsa
       - ./config.yaml:/config.yaml

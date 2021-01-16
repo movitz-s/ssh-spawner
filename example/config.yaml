@@ -1,0 +1,8 @@
+docker_url: unix:///var/run/docker.sock
+images:
+  - image_id: debian
+    display_name: Debian VM
+ssh:
+  port: 22
+  host: 0.0.0.0
+  banner: Hello World!

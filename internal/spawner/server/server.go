@@ -20,13 +20,13 @@ type Session struct {
 type Server struct {
 	serverConfig *ssh.ServerConfig
 	ss           shells.ShellService
-	config       *config.Config
+	config       config.Config
 	ips          map[string]bool
 	ipsLock      sync.Mutex
 }
 
 // NewServer constructs a new Server
-func NewServer(serverConfig *ssh.ServerConfig, ss shells.ShellService, config *config.Config) *Server {
+func NewServer(serverConfig *ssh.ServerConfig, ss shells.ShellService, config config.Config) *Server {
 	return &Server{
 		serverConfig: serverConfig,
 		ss:           ss,

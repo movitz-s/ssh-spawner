@@ -6,8 +6,9 @@ import (
 
 // Config holds the configuration for the whole application
 type Config struct {
-	Images []Image   `yaml:"images"`
-	SSH    SSHConfig `yaml:"ssh"`
+	DockerURL string    `yaml:"docker_url"`
+	Images    []Image   `yaml:"images"`
+	SSH       SSHConfig `yaml:"ssh"`
 }
 
 type Image struct {

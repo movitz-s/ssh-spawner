@@ -12,28 +12,21 @@ import (
 
 // Injectors from wire.go:
 
-func initializeShellService() (shells.ShellService, func(), error) {
-	client, cleanup, err := newDockerClient()
-	if err != nil {
-		return nil, nil, err
-	}
-	shellService := shells.NewDockerShellService(client)
-	return shellService, func() {
-		cleanup()
-	}, nil
-}
-
 func InitializeSSHServer() (*server.Server, func(), error) {
 	signer, err := loadPrivateKey()
 	if err != nil {
 		return nil, nil, err
 	}
 	serverConfig := newSSHConfig(signer)
-	shellService, cleanup, err := initializeShellService()
+	config, err := newConfig()
 	if err != nil {
 		return nil, nil, err
 	}
-	config := newConfig()
+	client, cleanup, err := newDockerClient(config)
+	if err != nil {
+		return nil, nil, err
+	}
+	shellService := shells.NewDockerShellService(client)
 	serverServer := server.NewServer(serverConfig, shellService, config)
 	return serverServer, func() {
 		cleanup()
