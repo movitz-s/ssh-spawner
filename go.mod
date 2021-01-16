@@ -12,7 +12,8 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/stretchr/testify v1.4.0 // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.6
+	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
 )

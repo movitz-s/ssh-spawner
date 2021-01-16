@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/manifoldco/promptui"
-	"github.com/movitz-s/ssh-spawner/shells"
+	"github.com/movitz-s/ssh-spawner/internal/spawner/shells"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )

@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  ssh:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    volumes:
+      - ./id_rsa:/id_rsa
+    ports:
+      - "22:22"
+

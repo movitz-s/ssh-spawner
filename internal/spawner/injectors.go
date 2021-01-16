@@ -1,46 +1,15 @@
-package main
+package spawner
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	docker "github.com/docker/docker/client"
-	"github.com/movitz-s/ssh-spawner/config"
-	"github.com/movitz-s/ssh-spawner/shells"
+	"github.com/movitz-s/ssh-spawner/internal/spawner/config"
+	"github.com/movitz-s/ssh-spawner/internal/spawner/shells"
 	"github.com/pkg/errors"
-
 	"golang.org/x/crypto/ssh"
 )
-
-// GitCommit is assigned at build time
-var GitCommit = "<unknown>"
-
-func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
-}
-
-func run() error {
-	banner()
-
-	server, err := initializeSSHServer()
-	if err != nil {
-		return err
-	}
-
-	err = server.Start()
-	return err
-}
-
-func banner() {
-	fmt.Printf(`SSH Spawner
-Git commit %s
-`, GitCommit)
-}
 
 func loadPrivateKey() (ssh.Signer, error) {
 	privateBytes, err := ioutil.ReadFile("id_rsa")
@@ -70,9 +39,14 @@ func newSSHConfig(key ssh.Signer) *ssh.ServerConfig {
 	return &config
 }
 
-func newDockerClient() (*docker.Client, error) {
+func newDockerClient() (*docker.Client, func(), error) {
 	client, err := docker.NewClient("tcp://127.0.0.1:2375", "", &http.Client{Transport: http.DefaultTransport}, map[string]string{})
-	return client, errors.Wrap(err, "Could not create docker client")
+
+	cleanup := func() {
+		client.Close()
+	}
+
+	return client, cleanup, errors.Wrap(err, "Could not create docker client")
 }
 
 func newConfig() *config.Config {
@@ -89,7 +63,7 @@ func newConfig() *config.Config {
 		},
 		SSH: config.SSHConfig{
 			Port: 22,
-			Host: "localhost",
+			Host: "0.0.0.0",
 		},
 	}
 }
