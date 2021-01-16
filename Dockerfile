@@ -8,8 +8,6 @@ COPY internal /src/internal
 COPY cmd /src/cmd
 COPY .git /src/.git
 
-RUN export GIT_COMMIT=$(git rev-list -1 HEAD)
-
 RUN CGO_ENABLED=0 go build -o /bin/sshspawner -ldflags "-X main.GitCommit=$(git rev-list -1 HEAD)" /src/cmd/spawner/main.go
 
 FROM scratch
